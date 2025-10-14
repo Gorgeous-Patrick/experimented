@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Callable
 
 from pydantic import BaseModel
+import uuid
 
 
 def find_store() -> Path:
@@ -51,15 +52,17 @@ def list_experiments(store_path: Path) -> list[tuple[Path, dict]]:
 
 def add_experiment(
     data: BaseExperiment, experiment_result: Path, store_path: Path | None = None
-) -> None:
+) -> uuid.UUID:
     if store_path is None:
         store_path = find_store()
-    id = len(experiment_directories(store_path))
-    path = store_path / str(id)
+    id_uuid = uuid.uuid4()
+    print(str(id_uuid))
+    path = store_path / str(id_uuid)
     shutil.copytree(experiment_result, path)
     with open(path / ".ex.json", "w") as file:
         json_txt = data.model_dump_json()
         file.write(json_txt)
+    return id_uuid
 
 
 def filter_experiment(
@@ -71,10 +74,12 @@ def filter_experiment(
     return [experiment for experiment in experiments if filter(experiment[1])]
 
 
-def delete_experiment(experiment_idx: int, store_path: Path | None = None) -> None:
+def delete_experiment(
+    experiment_uuid: uuid.UUID, store_path: Path | None = None
+) -> None:
     if store_path is None:
         store_path = find_store()
-    shutil.rmtree(store_path / str(experiment_idx))
+    shutil.rmtree(store_path / str(experiment_uuid))
 
 
 if __name__ == "__main__":
@@ -85,6 +90,6 @@ if __name__ == "__main__":
             )
         ),
         store_path=find_store(),
-        experiment_result=Path("hello"),
+        experiment_result=Path("test/hello"),
     )
     print(list_experiments(find_store()))

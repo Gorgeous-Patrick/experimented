@@ -1,6 +1,7 @@
 import os
 import pprint
 from pathlib import Path
+from uuid import UUID
 
 import typer
 
@@ -57,7 +58,7 @@ def add(
 
 
 @app.command()
-def rm(experiment_idx: int, experiment_root_dir: Path | None = None) -> None:
+def rm(experiment_idx: UUID, experiment_root_dir: Path | None = None) -> None:
     if experiment_root_dir is None:
         experiment_root_dir = Path(os.getcwd())
     store_path = experiment_root_dir / ".ex"
