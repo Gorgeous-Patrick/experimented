@@ -25,7 +25,6 @@ def list(root_dir: Path | None = None) -> None:
         print(f"=== Experiment {idx}, {experiment["metadata"]["time_start"]} - {experiment["metadata"]["time_end"]} ===")
         pprint.pprint(experiment)
         print()
-    
 
 def main():
     app()

@@ -36,7 +36,7 @@ def experiment_directories(store_path: Path) -> list[Path]:
 def list_experiments(store_path: Path) -> list[dict]:
     return [json.loads(get_experiment(dir)) for dir in experiment_directories(store_path)]
 
-def add_experiment(data: BaseExperiment, experiment_result: Path, store_path: Path | None) -> None:
+def add_experiment(data: BaseExperiment, experiment_result: Path, store_path: Path | None = None) -> None:
     if store_path is None:
         store_path = find_store()
     id = len(experiment_directories(store_path))
@@ -46,7 +46,7 @@ def add_experiment(data: BaseExperiment, experiment_result: Path, store_path: Pa
         json_txt = data.model_dump_json()
         file.write(json_txt)
 
-def filter_experiment(filter:Callable[[dict], bool], store_path: Path | None) -> list[dict]:
+def filter_experiment(filter:Callable[[dict], bool], store_path: Path | None = None) -> list[dict]:
     if store_path is None:
         store_path = find_store()
     experiments = list_experiments(store_path)
