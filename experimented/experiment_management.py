@@ -71,6 +71,12 @@ def filter_experiment(
     return [experiment for experiment in experiments if filter(experiment[1])]
 
 
+def delete_experiment(experiment_idx: int, store_path: Path | None = None) -> None:
+    if store_path is None:
+        store_path = find_store()
+    shutil.rmtree(store_path / str(experiment_idx))
+
+
 if __name__ == "__main__":
     add_experiment(
         data=BaseExperiment(
