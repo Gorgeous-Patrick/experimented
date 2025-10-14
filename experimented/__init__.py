@@ -21,8 +21,8 @@ def list(root_dir: Path | None = None) -> None:
     else:
         store_path = root_dir / ".ex"
     experiments = list_experiments(store_path)
-    for idx, experiment in enumerate(experiments):
-        print(f"=== Experiment {idx}, {experiment["metadata"]["time_start"]} - {experiment["metadata"]["time_end"]} ===")
+    for idx, (dir, experiment) in enumerate(experiments):
+        print(f"=== Experiment {idx}, {experiment["metadata"]["time_start"]} - {experiment["metadata"]["time_end"]} {dir} ===")
         pprint.pprint(experiment)
         print()
 

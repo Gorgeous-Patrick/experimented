@@ -33,8 +33,8 @@ def experiment_directories(store_path: Path) -> list[Path]:
     directories = [dir for dir in store_path.iterdir() if dir.is_dir()]
     return directories
 
-def list_experiments(store_path: Path) -> list[dict]:
-    return [json.loads(get_experiment(dir)) for dir in experiment_directories(store_path)]
+def list_experiments(store_path: Path) -> list[tuple[Path, dict]]:
+    return [(dir, json.loads(get_experiment(dir))) for dir in experiment_directories(store_path)]
 
 def add_experiment(data: BaseExperiment, experiment_result: Path, store_path: Path | None = None) -> None:
     if store_path is None:
@@ -46,11 +46,11 @@ def add_experiment(data: BaseExperiment, experiment_result: Path, store_path: Pa
         json_txt = data.model_dump_json()
         file.write(json_txt)
 
-def filter_experiment(filter:Callable[[dict], bool], store_path: Path | None = None) -> list[dict]:
+def filter_experiment(filter:Callable[[dict], bool], store_path: Path | None = None) -> list[tuple[Path, dict]]:
     if store_path is None:
         store_path = find_store()
     experiments = list_experiments(store_path)
-    return [experiment for experiment in experiments if filter(experiment)]
+    return [experiment for experiment in experiments if filter(experiment[1])]
 
 if __name__ == "__main__":
     add_experiment(data=BaseExperiment(metadata=BaseExperimentMetadata(time_start=datetime.now(), time_end=datetime.now())), store_path=find_store(), experiment_result=Path("hello"))
