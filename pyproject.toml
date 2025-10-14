@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "experimented"
+version = "0.0.1"
+description = "Experiment store."
+authors = [
+    { name = "Baichuan Li", email = "baichuanli@yahoo.com" },
+]
+requires-python = ">=3.9"
+dependencies = [
+    "typer==0.19.2",
+    "pydantic==2.12.2",
+]
+
+# Optional but recommended
+readme = "README.md"
+license = { text = "MIT" }
+
+[project.urls]
+Homepage = "https://github.com/Gorgeous-Patrick/experimented"
+
+# If you want a CLI tool called `experimented`
+[project.scripts]
+experimented = "experimented:main"
+
+[tool.setuptools]
+packages = ["experimented"]
