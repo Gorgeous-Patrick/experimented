@@ -28,3 +28,7 @@ experimented = "experimented:main"
 
 [tool.setuptools]
 packages = ["experimented"]
+
+
+[tool.black]
+line-length = 88

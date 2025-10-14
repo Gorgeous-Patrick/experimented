@@ -1,10 +1,13 @@
-import typer
 import os
-from .experiment_management import find_store, list_experiments
-from pathlib import Path
 import pprint
+from pathlib import Path
+
+import typer
+
+from .experiment_management import find_store, list_experiments
 
 app = typer.Typer()
+
 
 @app.command()
 def init(root_dir: Path | None = None) -> None:
@@ -14,6 +17,7 @@ def init(root_dir: Path | None = None) -> None:
     print(f"Creating experiment store at {experiment_store_path}")
     os.makedirs(experiment_store_path)
 
+
 @app.command()
 def list(root_dir: Path | None = None) -> None:
     if root_dir is None:
@@ -22,9 +26,15 @@ def list(root_dir: Path | None = None) -> None:
         store_path = root_dir / ".ex"
     experiments = list_experiments(store_path)
     for idx, (dir, experiment) in enumerate(experiments):
-        print(f"=== Experiment {idx}, {experiment["metadata"]["time_start"]} - {experiment["metadata"]["time_end"]} {dir} ===")
+        print(
+            f"=== Experiment {idx}, "
+            f"{experiment["metadata"]["time_start"]} "
+            f"- {experiment["metadata"]["time_end"]} "
+            f"{dir} ==="
+        )
         pprint.pprint(experiment)
         print()
+
 
 def main():
     app()
