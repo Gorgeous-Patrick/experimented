@@ -36,7 +36,9 @@ def experiment_directories(store_path: Path) -> list[Path]:
 def list_experiments(store_path: Path) -> list[dict]:
     return [json.loads(get_experiment(dir)) for dir in experiment_directories(store_path)]
 
-def add_experiment(data: BaseExperiment, store_path: Path, experiment_result: Path) -> None:
+def add_experiment(data: BaseExperiment, experiment_result: Path, store_path: Path | None) -> None:
+    if store_path is None:
+        store_path = find_store()
     id = len(experiment_directories(store_path))
     path = store_path / str(id)
     shutil.copytree(experiment_result, path)
@@ -44,7 +46,9 @@ def add_experiment(data: BaseExperiment, store_path: Path, experiment_result: Pa
         json_txt = data.model_dump_json()
         file.write(json_txt)
 
-def filter_experiment(store_path: Path, filter:Callable[[dict], bool]) -> list[dict]:
+def filter_experiment(filter:Callable[[dict], bool], store_path: Path | None) -> list[dict]:
+    if store_path is None:
+        store_path = find_store()
     experiments = list_experiments(store_path)
     return [experiment for experiment in experiments if filter(experiment)]
 
