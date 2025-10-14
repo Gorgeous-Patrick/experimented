@@ -4,7 +4,12 @@ from pathlib import Path
 
 import typer
 
-from .experiment_management import find_store, list_experiments
+from .experiment_management import (
+    add_experiment,
+    filter_experiment,
+    find_store,
+    list_experiments,
+)
 
 app = typer.Typer()
 
@@ -34,6 +39,9 @@ def list(root_dir: Path | None = None) -> None:
         )
         pprint.pprint(experiment)
         print()
+
+
+__all__ = ["list_experiments", "filter_experiment", "add_experiment"]
 
 
 def main():

@@ -14,8 +14,3 @@
         rev: 7.0.0 # Use the latest version
         hooks:
           - id: flake8
-      - repo: https://github.com/pycqa/isort
-        rev: 5.13.2 # Use the latest version
-        hooks:
-          - id: isort
-            name: isort (python)
