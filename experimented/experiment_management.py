@@ -44,10 +44,19 @@ def experiment_directories(store_path: Path) -> list[Path]:
 
 
 def list_experiments(store_path: Path) -> list[tuple[Path, dict]]:
-    return [
+    experiments = [
         (dir, json.loads(get_experiment(dir)))
         for dir in experiment_directories(store_path)
     ]
+
+    def _start_time(experiment: tuple[Path, dict]) -> datetime:
+        try:
+            ts = experiment[1].get("metadata", {}).get("time_start")
+            return datetime.fromisoformat(ts) if ts is not None else datetime.min
+        except Exception:
+            return datetime.min
+
+    return sorted(experiments, key=_start_time)
 
 
 def add_experiment(
