@@ -3,7 +3,7 @@ import os
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypeVar, Generic
 
 from pydantic import BaseModel
 import uuid
@@ -23,13 +23,17 @@ def find_store() -> Path:
     raise RuntimeError("Cannot find experiment store.")
 
 
+UserExperimentTVar = TypeVar("UserExperimentTVar")
+
+
 class BaseExperimentMetadata(BaseModel):
     time_start: datetime
     time_end: datetime
 
 
-class BaseExperiment(BaseModel):
+class BaseExperiment(BaseModel, Generic[UserExperimentTVar]):
     metadata: BaseExperimentMetadata
+    data: UserExperimentTVar
 
 
 def get_experiment(path: Path) -> str:
@@ -43,7 +47,7 @@ def experiment_directories(store_path: Path) -> list[Path]:
     return directories
 
 
-def list_experiments(store_path: Path) -> list[tuple[Path, dict]]:
+def list_experiments_untyped(store_path: Path) -> list[tuple[Path, dict]]:
     experiments = [
         (dir, json.loads(get_experiment(dir)))
         for dir in experiment_directories(store_path)
@@ -59,46 +63,49 @@ def list_experiments(store_path: Path) -> list[tuple[Path, dict]]:
     return sorted(experiments, key=_start_time)
 
 
-def add_experiment(
-    data: BaseExperiment, experiment_result: Path, store_path: Path | None = None
-) -> uuid.UUID:
-    if store_path is None:
-        store_path = find_store()
-    id_uuid = uuid.uuid4()
-    print(str(id_uuid))
-    path = store_path / str(id_uuid)
-    shutil.copytree(experiment_result, path)
-    with open(path / ".ex.json", "w") as file:
-        json_txt = data.model_dump_json()
-        file.write(json_txt)
-    return id_uuid
+class Experiment(Generic[UserExperimentTVar]):
+    def add_experiment(
+        self,
+        data: BaseExperiment[UserExperimentTVar],
+        experiment_result: Path,
+        store_path: Path | None = None,
+    ) -> uuid.UUID:
+        if store_path is None:
+            store_path = find_store()
+        id_uuid = uuid.uuid4()
+        print(str(id_uuid))
+        path = store_path / str(id_uuid)
+        shutil.copytree(experiment_result, path)
+        with open(path / ".ex.json", "w") as file:
+            json_txt = data.model_dump_json()
+            file.write(json_txt)
+        return id_uuid
 
-
-def filter_experiment(
-    filter: Callable[[dict], bool], store_path: Path | None = None
-) -> list[tuple[Path, dict]]:
-    if store_path is None:
-        store_path = find_store()
-    experiments = list_experiments(store_path)
-    return [experiment for experiment in experiments if filter(experiment[1])]
-
-
-def delete_experiment(
-    experiment_uuid: uuid.UUID, store_path: Path | None = None
-) -> None:
-    if store_path is None:
-        store_path = find_store()
-    shutil.rmtree(store_path / str(experiment_uuid))
-
-
-if __name__ == "__main__":
-    add_experiment(
-        data=BaseExperiment(
-            metadata=BaseExperimentMetadata(
-                time_start=datetime.now(), time_end=datetime.now()
+    def list_experiments(
+        self, store_path: Path
+    ) -> list[tuple[Path, UserExperimentTVar]]:
+        experiments_untyped = list_experiments_untyped(store_path)
+        return [
+            (
+                experiment[0],
+                BaseExperiment[UserExperimentTVar].model_validate(experiment[1]),
             )
-        ),
-        store_path=find_store(),
-        experiment_result=Path("test/hello"),
-    )
-    print(list_experiments(find_store()))
+            for experiment in experiments_untyped
+        ]
+
+    def filter_experiment(
+        self,
+        filter: Callable[[UserExperimentTVar], bool],
+        store_path: Path | None = None,
+    ) -> list[tuple[Path, UserExperimentTVar]]:
+        if store_path is None:
+            store_path = find_store()
+        experiments = self.list_experiments(store_path)
+        return [experiment for experiment in experiments if filter(experiment[1])]
+
+    def delete_experiment(
+        self, experiment_uuid: uuid.UUID, store_path: Path | None = None
+    ) -> None:
+        if store_path is None:
+            store_path = find_store()
+        shutil.rmtree(store_path / str(experiment_uuid))
