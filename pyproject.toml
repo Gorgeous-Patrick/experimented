@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "experimented"
-version = "0.0.2"
+version = "0.0.4"
 description = "Experiment store."
 authors = [
     { name = "Baichuan Li", email = "baichuanli@yahoo.com" },
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "typer==0.19.2",
-    "pydantic==2.12.2",
+    "typer>=0.19",
+    "pydantic>=2.9",
 ]
 
 # Optional but recommended
