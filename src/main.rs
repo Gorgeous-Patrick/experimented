@@ -1,19 +1,16 @@
 use clap::{Parser, Subcommand};
-use experimented::{run};
+use experimented::run;
 
 #[derive(Parser)]
 #[command(name = "experimented")]
-struct Cli{
+struct Cli {
     #[command(subcommand)]
     command: Command,
 }
 
 #[derive(Subcommand)]
 enum Command {
-
-    Run {
-        stored_env: Option<String>
-    }
+    Run { stored_env: Option<String> },
 }
 
 fn main() {
