@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use experimented::{greet};
+use experimented::{run};
 
 #[derive(Parser)]
 #[command(name = "experimented")]
@@ -10,17 +10,15 @@ struct Cli{
 
 #[derive(Subcommand)]
 enum Command {
-    Greet {
-        name: String
-    },
-    SomethingElse
+
+    Run {
+        stored_env: Option<String>
+    }
 }
 
 fn main() {
-    println!("Hello, world!");
     let cli = Cli::parse();
     match cli.command {
-        Command::Greet { name } => greet(),
-        Command::SomethingElse => {println!("SOMETHING")}
+        Command::Run { stored_env } => run("h".to_string(), None).unwrap(),
     }
 }
