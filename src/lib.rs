@@ -6,6 +6,7 @@ use std::{
 };
 
 use chrono::{DateTime, Utc};
+use fs_extra::dir::CopyOptions;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -18,6 +19,12 @@ pub enum ExperimentedError {
     CreateFolder {
         #[from]
         source: std::io::Error,
+    },
+
+    #[error("Cannot copy folder.")]
+    CopyFolder {
+        #[from]
+        source: fs_extra::error::Error,
     },
 
     #[error("Cannot dump json.")]
@@ -63,7 +70,7 @@ pub fn init_store(store_path_optional: Option<PathBuf>) -> Result<(), Experiment
 pub fn register_experiment(
     vars: &HashMap<String, String>,
     store_path_optional: Option<PathBuf>,
-) -> Result<(), ExperimentedError> {
+) -> Result<String, ExperimentedError> {
     let store_path = find_store(store_path_optional)?;
     let start_time: DateTime<Utc> = Utc::now();
     let experiment_path = store_path.join(start_time.to_string());
@@ -76,5 +83,18 @@ pub fn register_experiment(
     };
     serde_json::to_writer(config_file, &config)
         .map_err(|source| ExperimentedError::JsonDump { source })?;
+    Ok(start_time.to_string())
+}
+
+pub fn end_experiment(
+    store_path_optional: Option<PathBuf>,
+    result_path: PathBuf,
+    start_time: String,
+) -> Result<(), ExperimentedError> {
+    let store_path = find_store(store_path_optional)?;
+    let mut opts = CopyOptions::new();
+    let destination_path = store_path.join(start_time).join("results");
+    opts.copy_inside = true;
+    let _ = fs_extra::dir::copy(result_path, destination_path, &opts)?;
     Ok(())
 }

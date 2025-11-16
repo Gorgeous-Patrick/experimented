@@ -22,6 +22,9 @@ fn main() {
     map.insert("Hello".to_string(), "100".to_string());
     match cli.command {
         Command::Init => init_store(None).unwrap(),
-        Command::Run { stored_env } => register_experiment(&map, None).unwrap(),
+        Command::Run { stored_env } => {
+            register_experiment(&map, None).unwrap();
+            ()
+        },
     }
 }
