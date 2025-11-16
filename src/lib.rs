@@ -1,18 +1,33 @@
 use std::{
+    collections::HashMap,
     env,
-    error::Error,
-    path::{self, Path, PathBuf},
+    fs::{self, File},
+    path::PathBuf,
 };
 
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ExperimentedError {
     #[error("Experimented store not found.")]
     StoreNotFound,
+
+    #[error("Cannot create folder.")]
+    CreateFolder {
+        #[from]
+        source: std::io::Error,
+    },
+
+    #[error("Cannot dump json.")]
+    JsonDump {
+        #[from]
+        source: serde_json::Error,
+    },
 }
 
-fn find_store(start_path: PathBuf) -> Result<PathBuf, ExperimentedError> {
+fn find_store_helper(start_path: PathBuf) -> Result<PathBuf, ExperimentedError> {
     let store_name = ".ex";
     let mut base_path = start_path.as_path();
     loop {
@@ -23,10 +38,43 @@ fn find_store(start_path: PathBuf) -> Result<PathBuf, ExperimentedError> {
         base_path = base_path.parent().ok_or(ExperimentedError::StoreNotFound)?;
     }
 }
-pub fn run(
-    stored_env: String,
+
+fn find_store(store_path_optional: Option<PathBuf>) -> Result<PathBuf, ExperimentedError> {
+    return find_store_helper(store_path_optional.unwrap_or(env::current_dir().unwrap()));
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ExperimentMetadata {
+    start_time: DateTime<Utc>,
+    vars: HashMap<String, String>,
+}
+
+fn init_store_helper(store_path: PathBuf) -> Result<(), ExperimentedError> {
+    let store_name = ".ex";
+    let store_path = store_path.join(store_name);
+    fs::create_dir(store_path)?;
+    Ok(())
+}
+
+pub fn init_store(store_path_optional: Option<PathBuf>) -> Result<(), ExperimentedError> {
+    return init_store_helper(store_path_optional.unwrap_or(env::current_dir().unwrap()));
+}
+
+pub fn register_experiment(
+    vars: &HashMap<String, String>,
     store_path_optional: Option<PathBuf>,
 ) -> Result<(), ExperimentedError> {
-    let store_path = find_store(store_path_optional.unwrap_or(env::current_dir().unwrap()))?;
+    let store_path = find_store(store_path_optional)?;
+    let start_time: DateTime<Utc> = Utc::now();
+    let experiment_path = store_path.join(start_time.to_string());
+    fs::create_dir(&experiment_path)?;
+    let config_json_path = experiment_path.join("config.json");
+    let config_file = File::create_new(config_json_path)?;
+    let config = ExperimentMetadata {
+        start_time,
+        vars: vars.clone(),
+    };
+    serde_json::to_writer(config_file, &config)
+        .map_err(|source| ExperimentedError::JsonDump { source })?;
     Ok(())
 }
