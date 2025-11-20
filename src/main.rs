@@ -1,5 +1,7 @@
-use std::collections::HashMap;
+use globset::Glob;
+use std::{collections::HashMap, env, path::Path};
 
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use experimented::{init_store, register_experiment};
 
@@ -12,19 +14,49 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    Run { stored_env: Option<String> },
-    Init,
+    Init {
+        path: Option<String>,
+    },
+    Run {
+        path: Option<String>,
+        env_vars: Option<String>,
+    },
 }
 
-fn main() {
+fn get_stored_env(stored_env_match: Option<String>) -> Result<HashMap<String, String>> {
+    let vars = match stored_env_match {
+        Some(env_match) => {
+            let g = Glob::new(&env_match)?.compile_matcher();
+            let mut vars = HashMap::new();
+            for (key, value) in env::vars() {
+                if g.is_match(&key) {
+                    vars.insert(key, value);
+                }
+            }
+            vars
+        }
+        None => {
+            let mut vars = HashMap::new();
+            for (key, value) in env::vars() {
+                vars.insert(key, value);
+            }
+            vars
+        }
+    };
+    Ok(vars)
+}
+
+fn main() -> Result<()> {
     let cli = Cli::parse();
-    let mut map: HashMap<String, String> = HashMap::new();
-    map.insert("Hello".to_string(), "100".to_string());
     match cli.command {
-        Command::Init => init_store(None).unwrap(),
-        Command::Run { stored_env } => {
-            register_experiment(&map, None).unwrap();
+        Command::Init { path } => {
+            init_store(path.map(|str| Path::new(&str).to_path_buf())).unwrap()
+        }
+        Command::Run { path, env_vars } => {
+            let vars = get_stored_env(env_vars)?;
+            register_experiment(&vars, path.map(|str| Path::new(&str).to_path_buf())).unwrap();
             ()
-        },
+        }
     }
+    Ok(())
 }
