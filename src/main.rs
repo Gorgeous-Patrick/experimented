@@ -20,7 +20,7 @@ enum Command {
     Run {
         path: Option<String>,
 
-        #[arg(short, long, default_value="*")]
+        #[arg(short, long, default_value = "*")]
         env_vars: String,
     },
 }
