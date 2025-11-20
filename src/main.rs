@@ -19,30 +19,20 @@ enum Command {
     },
     Run {
         path: Option<String>,
-        env_vars: Option<String>,
+
+        #[arg(short, long, default_value="*")]
+        env_vars: String,
     },
 }
 
-fn get_stored_env(stored_env_match: Option<String>) -> Result<HashMap<String, String>> {
-    let vars = match stored_env_match {
-        Some(env_match) => {
-            let g = Glob::new(&env_match)?.compile_matcher();
-            let mut vars = HashMap::new();
-            for (key, value) in env::vars() {
-                if g.is_match(&key) {
-                    vars.insert(key, value);
-                }
-            }
-            vars
+fn get_stored_env(stored_env_match: String) -> Result<HashMap<String, String>> {
+    let g = Glob::new(&stored_env_match)?.compile_matcher();
+    let mut vars = HashMap::new();
+    for (key, value) in env::vars() {
+        if g.is_match(&key) {
+            vars.insert(key, value);
         }
-        None => {
-            let mut vars = HashMap::new();
-            for (key, value) in env::vars() {
-                vars.insert(key, value);
-            }
-            vars
-        }
-    };
+    }
     Ok(vars)
 }
 
