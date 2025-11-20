@@ -55,7 +55,6 @@ fn main() -> Result<()> {
         Command::Run { path, env_vars } => {
             let vars = get_stored_env(env_vars)?;
             register_experiment(&vars, path.map(|str| Path::new(&str).to_path_buf())).unwrap();
-            ()
         }
     }
     Ok(())
