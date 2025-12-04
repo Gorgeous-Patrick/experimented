@@ -3,7 +3,7 @@ use std::{collections::HashMap, env, path::Path};
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use experimented::{end_experiment, init_store, register_experiment};
+use experimented_lib::{end_experiment, init_store, register_experiment};
 
 #[derive(Parser)]
 #[command(name = "experimented")]

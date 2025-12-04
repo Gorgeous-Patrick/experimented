@@ -5,11 +5,7 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-thiserror = "2.0.17"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
-fs_extra = "1"
 globset = "0.4"
 anyhow = "1"
+experimented_lib = {path = "./experimented_lib"}
