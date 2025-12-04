@@ -3,7 +3,7 @@ use std::{collections::HashMap, env, path::Path};
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use experimented::{init_store, register_experiment};
+use experimented::{end_experiment, init_store, register_experiment};
 
 #[derive(Parser)]
 #[command(name = "experimented")]
@@ -22,6 +22,12 @@ enum Command {
 
         #[arg(short, long, default_value = "*")]
         env_vars: String,
+    },
+
+    End {
+        path: Option<String>,
+        result_path: String,
+        start_time: String,
     },
 }
 
@@ -45,6 +51,17 @@ fn main() -> Result<()> {
         Command::Run { path, env_vars } => {
             let vars = get_stored_env(env_vars)?;
             register_experiment(&vars, path.map(|str| Path::new(&str).to_path_buf())).unwrap();
+        }
+        Command::End {
+            path,
+            result_path,
+            start_time,
+        } => {
+            end_experiment(
+                path.map(|str| Path::new(&str).to_path_buf()),
+                Path::new(&result_path).to_path_buf(),
+                start_time,
+            )?;
         }
     }
     Ok(())
